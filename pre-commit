@@ -1,0 +1,68 @@
+#!/bin/sh
+#
+# Copyright (C) 2024 Mfawa Alfred Onen
+#
+# This file is part of This program.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with This program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Laravel Pint pre-commit hook
+# https://github.com/muffycompo/laravel-pint-pre-commit-hook
+#
+# @see https://git-scm.com/docs/git-config#Documentation/git-config.txt-corehooksPath
+# @see https://git-scm.com/docs/githooks#_pre_commit)
+# @see https://laravel.com/docs/master/pint
+# @see https://cs.symfony.com
+
+set -e
+
+unset CDPATH
+
+IFS='
+'
+
+get_config() {
+    # https://laravel.com/docs/master/pint#configuring-pint
+    if test -f "./pint.json"; then
+        echo "/pint.json"
+        return
+    fi
+}
+
+run_laravel_pint() {
+    laravel_pint_bin=
+    if test -f "vendor/bin/pint"; then
+        laravel_pint_bin="vendor/bin/pint"
+        break
+    fi
+
+    if test -z "$laravel_pint_bin"; then
+        echo "Laravel pint not installed. Run 'composer require laravel/pint --dev'"
+        return  # Noop, laravel pint not installed.
+    fi
+
+    config="$(get_config)"
+    if test -z "$config"; then
+        echo "Laravel pint config not found. Create 'pint.json' file"
+        return  # Noop, laravel pint config not found.
+    fi
+
+
+    "$laravel_pint_bin" -q \
+        --dirty \
+        --config="$config" \
+        ${extra_args}
+}
+
+run_laravel_pint
